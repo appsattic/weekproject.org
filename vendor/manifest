@@ -6,6 +6,61 @@
 			"repository": "https://github.com/boltdb/bolt",
 			"revision": "0d9f544bb94aac29c185968483459ef74d6deb5d",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/context",
+			"repository": "https://github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/mux",
+			"repository": "https://github.com/gorilla/mux",
+			"revision": "757bef944d0f21880861c2dd9c871ca543023cba",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/pat",
+			"repository": "https://github.com/gorilla/pat",
+			"revision": "cf955c3d1f2c27ee96f93e9738085c762ff5f49d",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/securecookie",
+			"repository": "https://github.com/gorilla/securecookie",
+			"revision": "fa5329f913702981df43dcb2a380bac429c810b5",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/sessions",
+			"repository": "https://github.com/gorilla/sessions",
+			"revision": "52389059572b4736b2b7d899b0242ecc449c8779",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/markbates/goth",
+			"repository": "https://github.com/markbates/goth",
+			"revision": "3acbc121d85c1252780116f20382b3bee6c48597",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mrjones/oauth",
+			"repository": "https://github.com/mrjones/oauth",
+			"revision": "88427e754deb856c87036b0f91c069bc4f6a1411",
+			"branch": "master"
+		},
+		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "e31bd588d1077ee66a958c0ad3a235f2084b4195",
+			"branch": "master",
+			"path": "/context"
+		},
+		{
+			"importpath": "golang.org/x/oauth2",
+			"repository": "https://go.googlesource.com/oauth2",
+			"revision": "f6093e37b6cb4092101a298aba5d794eb570757f",
+			"branch": "master"
 		}
 	]
 }

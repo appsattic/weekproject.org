@@ -1,0 +1,17 @@
+{{ template "header.html" . }}
+
+  {{ with .Username }}
+    <div class="nav">
+      Hello <span>{{ . }}</span>
+      |
+      <a href="/logout">Logout</a>
+    </div>
+  {{ else }}
+    <a href="/auth/twitter">Sign In with Twitter</a>
+  {{ end }}
+
+  <h1>The Week Project</h1>
+  <p>Hello, World!</p>
+  <p>(Ends)</p>
+
+{{ template "footer.html" . }}

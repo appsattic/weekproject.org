@@ -26,8 +26,6 @@ For [AppsAttic](https://appsattic.com/),  [@AppsAttic](https://twitter.com/AppsA
 
 ## License ##
 
-MIT.
-
-...
+[MIT](https://opensource.org/licenses/MIT).
 
 (Ends)

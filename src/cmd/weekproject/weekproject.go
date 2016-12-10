@@ -62,7 +62,11 @@ func main() {
 	// goth
 	goth.UseProviders(twitter)
 
+	// router
 	p := pat.New()
+
+	p.PathPrefix("/s/").Handler(http.FileServer(http.Dir("static")))
+
 	p.Get("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
 
@@ -101,7 +105,7 @@ func main() {
 		sessions.Save(r, w)
 
 		// redirect to somewhere else
-		http.Redirect(w, r, "/", http.StatusFound)
+		http.Redirect(w, r, "/p/", http.StatusFound)
 	})
 
 	// begin auth
@@ -121,8 +125,53 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	// Projects
+	p.Get("/p/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/p/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		// firstly, check if this user is logged in
+		session, _ := sessionStore.Get(r, sessionName)
+
+		// get some things from the session
+		id := getStringFromSession(session, "id")
+		username := getStringFromSession(session, "username")
+		email := getStringFromSession(session, "email")
+
+		// check the id only
+		if id == "" {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		// get a list of projects
+
+		data := struct {
+			Title    string
+			Id       string
+			Username string
+			Email    string
+			Projects []Project
+		}{
+			"Your Projects",
+			id,
+			username,
+			email,
+			make([]Project, 0),
+		}
+
+		render(w, "p.html", data)
+	})
+
 	// home
 	p.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+
 		session, _ := sessionStore.Get(r, sessionName)
 
 		id := getStringFromSession(session, "id")
@@ -130,10 +179,12 @@ func main() {
 		email := getStringFromSession(session, "email")
 
 		data := struct {
+			Title    string
 			Id       string
 			Username string
 			Email    string
 		}{
+			"The Week Project",
 			id,
 			username,
 			email,

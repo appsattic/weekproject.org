@@ -5,3 +5,10 @@ type User struct {
 	Username string // e.g. "chilts"
 	Email    string // e.g. "andychilton@gmail.com"
 }
+
+type Project struct {
+	Id       string
+	Username string
+	Title    string
+	Content  string
+}

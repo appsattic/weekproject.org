@@ -1,0 +1,19 @@
+{{ template "header.html" . }}
+
+  <p>
+    Here is a list of your projects:
+  </p>
+
+  {{ if .Projects }}
+  <ul>
+  </ul>
+  {{ else }}
+  <p>No projects found.</p>
+  <p>Why not <a href="/p/new">create one</a> now?</p>
+  {{ end }}
+
+  <p>
+    (Ends)
+  </p>
+
+{{ template "footer.html" . }}

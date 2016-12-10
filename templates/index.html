@@ -1,17 +1,17 @@
 {{ template "header.html" . }}
 
-  {{ with .Username }}
-    <div class="nav">
-      Hello <span>{{ . }}</span>
-      |
-      <a href="/logout">Logout</a>
-    </div>
-  {{ else }}
-    <a href="/auth/twitter">Sign In with Twitter</a>
-  {{ end }}
+  <p>
+    The Week Project is here to inspire you to learn or do something new, over the space of a week.
+  </p>
 
-  <h1>The Week Project</h1>
-  <p>Hello, World!</p>
-  <p>(Ends)</p>
+  <p>
+    We all love to learn but sometimes we don't get enough time these days, or we don't think we have enough time to
+    learn. So instead of committing yourself to many, many hours, just give youself a week. You'll be surprised at how
+    much you can do.
+  </p>
+
+  <p>
+    (Ends)
+  </p>
 
 {{ template "footer.html" . }}

@@ -1,8 +1,33 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Basic Template</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Minimal CSS framework for flat and clean designs.">
+	<meta name="author" content="Jose Miguel Juanes">
+	<meta name="keywords" content="jmjuanes, juanes, josemi, siimple, css, ui, flat, clean, websites, minimal">
+    <title>{{ .Title }}</title>
+	<link rel="stylesheet" type="text/css" href="/s/css/siimple.min.css">
+	<link rel="stylesheet" type="text/css" href="/s/css/styles.css">
+	<link rel="shortcut icon" href="/s/img/favicon.ico">
   </head>
   <body>
+
+	<!-- Navbar -->
+	<div class="navbar">
+	  <!-- Logo -->
+	  <a href="./" class="navbar-logo">Week Project</a>
+	  <!-- Items -->
+  {{ with .Username }}
+	  <a href="/logout" class="navbar-link">Logout</a>
+	  <a href="/profile" class="navbar-link">{{ . }}</a>
+  {{ else }}
+	  <a href="/auth/twitter" class="navbar-link">Sign In with Twitter</a>
+  {{ end }}
+	</div>
+
+    <!-- Head -->
+    <div class="docs-head" align="center">{{ .Title }}</div>
+
+    <!-- .main -->
+    <div class="grid main">

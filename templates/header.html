@@ -18,9 +18,9 @@
 	  <!-- Logo -->
 	  <a href="./" class="navbar-logo">Week Project</a>
 	  <!-- Items -->
-  {{ with .Username }}
+  {{ with .User }}
 	  <a href="/logout" class="navbar-link">Logout</a>
-	  <a href="/profile" class="navbar-link">{{ . }}</a>
+	  <a href="/profile" class="navbar-link">{{ .Name }}</a>
   {{ else }}
 	  <a href="/auth/twitter" class="navbar-link">Sign In with Twitter</a>
   {{ end }}

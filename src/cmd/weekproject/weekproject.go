@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"html/template"
 	"log"
@@ -39,7 +40,16 @@ func getStringFromSession(session *sessions.Session, name string) string {
 	return id
 }
 
+func getUserFromSession(session *sessions.Session) *User {
+	user, ok := session.Values["user"].(*User)
+	if !ok {
+		return nil
+	}
+	return user
+}
+
 func init() {
+	// tell gothic where our session store is
 	gothic.Store = sessionStore
 
 	// don't need `.Delims("[[", "]]")` since we're not using Vue.js here
@@ -48,6 +58,9 @@ func init() {
 		log.Fatal(err)
 	}
 	tmpl = tmpl1
+
+	// Register the user with `gob` so we can serialise it.
+	gob.Register(&User{})
 }
 
 func main() {
@@ -80,11 +93,12 @@ func main() {
 			return
 		}
 
-		// fmt.Printf("auth=%#v\n", authUser)
+		fmt.Printf("auth=%#v\n", authUser)
 
 		// set this info in the session
 		session.Values["id"] = authUser.UserID
-		session.Values["username"] = authUser.NickName
+		session.Values["name"] = authUser.NickName
+		session.Values["title"] = authUser.Name
 		session.Values["email"] = authUser.Email
 
 		// read this user out of the store
@@ -95,11 +109,14 @@ func main() {
 
 		// ToDo: save this user in the store
 		user := User{
-			Id:       provider + "-" + authUser.UserID,
-			Username: provider + "-" + authUser.UserID,
-			Email:    authUser.Email,
+			Id:    provider + "-" + authUser.UserID,
+			Name:  authUser.NickName,
+			Title: authUser.Name,
+			Email: authUser.Email,
 		}
 		fmt.Printf("user=%#v\n", user)
+
+		session.Values["user"] = &user
 
 		// save all sessions
 		sessions.Save(r, w)
@@ -117,12 +134,74 @@ func main() {
 
 		// scrub user
 		delete(session.Values, "id")
-		delete(session.Values, "username")
+		delete(session.Values, "name")
+		delete(session.Values, "title")
 		delete(session.Values, "email")
+		delete(session.Values, "user")
 		session.Save(r, w)
 
 		// redirect to somewhere else
 		http.Redirect(w, r, "/", http.StatusFound)
+	})
+
+	// Publicly Viewable Projects
+	p.Get("/u/:userName/p/:projectName/", func(w http.ResponseWriter, r *http.Request) {
+		data := struct {
+			Title    string
+			UserName string
+		}{
+			"Project by User",
+			"",
+		}
+		render(w, "user-u-project-p.html", data)
+	})
+
+	// Projects
+	p.Get("/p/new", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/p/new" {
+			http.NotFound(w, r)
+			return
+		}
+
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		// render the new form
+		data := struct {
+			Title    string
+			User     *User
+			UserName string
+		}{
+			"New Project",
+			user,
+			"",
+		}
+		render(w, "project-new.html", data)
+	})
+
+	// Specific Project
+	p.Get("/p/:projectName/", func(w http.ResponseWriter, r *http.Request) {
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		data := struct {
+			Title    string
+			User     *User
+			UserName string
+		}{
+			"Project by User",
+			user,
+			"",
+		}
+		render(w, "project-info.html", data)
 	})
 
 	// Projects
@@ -134,10 +213,15 @@ func main() {
 
 		// firstly, check if this user is logged in
 		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
 
 		// get some things from the session
 		id := getStringFromSession(session, "id")
-		username := getStringFromSession(session, "username")
+		name := getStringFromSession(session, "name")
 		email := getStringFromSession(session, "email")
 
 		// check the id only
@@ -150,14 +234,16 @@ func main() {
 
 		data := struct {
 			Title    string
+			User     *User
 			Id       string
-			Username string
+			UserName string
 			Email    string
 			Projects []Project
 		}{
 			"Your Projects",
+			user,
 			id,
-			username,
+			name,
 			email,
 			make([]Project, 0),
 		}
@@ -173,21 +259,24 @@ func main() {
 		}
 
 		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
 
 		id := getStringFromSession(session, "id")
-		username := getStringFromSession(session, "username")
+		name := getStringFromSession(session, "name")
 		email := getStringFromSession(session, "email")
 
 		data := struct {
 			Title    string
 			Id       string
-			Username string
+			UserName string
 			Email    string
+			User     *User
 		}{
 			"The Week Project",
 			id,
-			username,
+			name,
 			email,
+			user,
 		}
 
 		render(w, "index.html", data)

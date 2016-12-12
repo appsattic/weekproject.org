@@ -14,6 +14,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/chilts/rod",
+			"repository": "https://github.com/chilts/rod",
+			"revision": "aa97f72c23d5500aadf01e9ef39ffd02c479d94d",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/gorilla/context",
 			"repository": "https://github.com/gorilla/context",
 			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/gob"
 	"fmt"
 	"html/template"
@@ -33,11 +34,18 @@ func check(err error) {
 	}
 }
 
-func render(w http.ResponseWriter, templateName string, data interface{}) {
-	err := tmpl.ExecuteTemplate(w, templateName, data)
+func render(w http.ResponseWriter, tmplName string, data interface{}) {
+	log.Printf("render(): entry, name=%s", tmplName)
+	defer log.Printf("render(): exit")
+
+	buf := &bytes.Buffer{}
+	err := tmpl.ExecuteTemplate(buf, tmplName, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	buf.WriteTo(w)
 }
 
 func getStringFromSession(session *sessions.Session, name string) string {
@@ -80,6 +88,8 @@ func main() {
 	check(errBoltOpen)
 	defer db.Close()
 
+	// Goth example setup : https://publish.li/goth-example-TQEVYjoH
+
 	// twitter
 	twitterConsumerKey := os.Getenv("TWITTER_CONSUMER_KEY")
 	twitterSecretKey := os.Getenv("TWITTER_SECRET_KEY")
@@ -98,7 +108,6 @@ func main() {
 
 		// get this provider name from the URL
 		provider := r.URL.Query().Get(":provider")
-		// fmt.Printf("provider=%s\n", provider)
 
 		authUser, err := gothic.CompleteUserAuth(w, r)
 		if err != nil {
@@ -106,6 +115,8 @@ func main() {
 			return
 		}
 
+		fmt.Printf("provider=%s\n", provider)
+		fmt.Printf("authUser.Provider=%s\n", authUser.Provider)
 		fmt.Printf("auth=%#v\n", authUser)
 
 		// set this info in the session
@@ -122,7 +133,7 @@ func main() {
 
 		// save this social and user to the store
 		social := Social{
-			Id:   provider + "-" + authUser.UserID,
+			Id:   authUser.Provider + "-" + authUser.UserID,
 			Name: authUser.NickName,
 		}
 		user := User{
@@ -179,13 +190,35 @@ func main() {
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
 
+		// get this provider name from the URL
+		userName := r.URL.Query().Get(":userName")
+		projectName := r.URL.Query().Get(":projectName")
+
+		fmt.Printf("userName=%s\n", userName)
+		fmt.Printf("projectName=%s\n", projectName)
+
+		// try and retrieve this project from the store
+		p, err := ProjectGet(db, userName, projectName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if p.Name == "" {
+			http.NotFound(w, r)
+			return
+		}
+
 		fmt.Printf("Path=%s\n", r.URL.Path)
 		data := struct {
-			Title string
-			User  *User
+			Title    string
+			SubTitle string
+			User     *User
+			Project  Project
 		}{
-			"Project by User",
+			p.Title,
+			"By " + p.UserName,
 			user,
+			p,
 		}
 		render(w, "user-u-project-p.html", data)
 	})
@@ -247,7 +280,10 @@ func main() {
 	})
 
 	// Specific Project
-	p.Get("/p/:projectName/", func(w http.ResponseWriter, r *http.Request) {
+	p.Get("/p/{projectName}/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("/p/{projectName}/ : entry\n")
+		defer fmt.Printf("/p/{projectName}/ : exit\n")
+
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
 		if user == nil {
@@ -255,14 +291,30 @@ func main() {
 			return
 		}
 
+		// get this provider name from the URL
+		projectName := r.URL.Query().Get(":projectName")
+
+		// try and retrieve this project from the store
+		p, err := ProjectGet(db, user.Name, projectName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if p.Name == "" {
+			http.NotFound(w, r)
+			return
+		}
+
 		data := struct {
 			Title    string
+			SubTitle string
 			User     *User
-			UserName string
+			Project  Project
 		}{
-			"Project by User",
+			p.Title,
+			"by " + p.UserName,
 			user,
-			"",
+			p,
 		}
 		render(w, "project-info.html", data)
 	})
@@ -282,32 +334,16 @@ func main() {
 			return
 		}
 
-		// get some things from the session
-		id := getStringFromSession(session, "id")
-		name := getStringFromSession(session, "name")
-		email := getStringFromSession(session, "email")
-
-		// check the id only
-		if id == "" {
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
-
 		// get a list of projects
+		// ToDo: ... !
 
 		data := struct {
 			Title    string
 			User     *User
-			Id       string
-			UserName string
-			Email    string
 			Projects []Project
 		}{
 			"Your Projects",
 			user,
-			id,
-			name,
-			email,
 			make([]Project, 0),
 		}
 
@@ -324,21 +360,11 @@ func main() {
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
 
-		id := getStringFromSession(session, "id")
-		name := getStringFromSession(session, "name")
-		email := getStringFromSession(session, "email")
-
 		data := struct {
-			Title    string
-			Id       string
-			UserName string
-			Email    string
-			User     *User
+			Title string
+			User  *User
 		}{
 			"The Week Project",
-			id,
-			name,
-			email,
 			user,
 		}
 

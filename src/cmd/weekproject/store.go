@@ -80,3 +80,15 @@ func ProjectIns(db *bolt.DB, project Project) (Project, error) {
 
 	return p, err
 }
+
+// ProjectGet
+func ProjectGet(db *bolt.DB, userName, projectName string) (Project, error) {
+	p := Project{}
+
+	err := db.View(func(tx *bolt.Tx) error {
+		return rod.GetJson(tx, "user."+userName+".project", projectName, &p)
+		return nil
+	})
+
+	return p, err
+}

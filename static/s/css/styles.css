@@ -79,6 +79,16 @@
   color: #ffffff;
   background-color: #09a0f6; }
 
+.docs-subhead {
+  display: block;
+  width: 100%;
+  padding-top: 10px;
+  padding-bottom: 30px;
+  font-family: 'Pacifico';
+  font-size: 30px;
+  color: #ffffff;
+  background-color: #09a0f6; }
+
 .docs-row {
   margin-bottom: 20px; }
 

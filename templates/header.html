@@ -28,6 +28,9 @@
 
     <!-- Head -->
     <div class="docs-head" align="center">{{ .Title }}</div>
+    {{ if .SubTitle }}
+    <div class="docs-subhead" align="center">{{ .SubTitle }}</div>
+    {{ end }}
 
     <!-- .main -->
     <div class="grid main">

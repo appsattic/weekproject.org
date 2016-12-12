@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/gorilla/pat"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -24,6 +26,12 @@ var sessionStore = sessions.NewCookieStore(
 
 var tmpl *template.Template
 var sessionName = "session"
+
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func render(w http.ResponseWriter, templateName string, data interface{}) {
 	err := tmpl.ExecuteTemplate(w, templateName, data)
@@ -67,6 +75,11 @@ func main() {
 	baseUrl := os.Getenv("BASE_URL")
 	port := os.Getenv("PORT")
 
+	// open the store
+	db, errBoltOpen := bolt.Open("weekproject.db", 0666, &bolt.Options{Timeout: 1 * time.Second})
+	check(errBoltOpen)
+	defer db.Close()
+
 	// twitter
 	twitterConsumerKey := os.Getenv("TWITTER_CONSUMER_KEY")
 	twitterSecretKey := os.Getenv("TWITTER_SECRET_KEY")
@@ -107,16 +120,33 @@ func main() {
 
 		// read this user out of the store
 
-		// ToDo: save this user in the store
+		// save this social and user to the store
+		social := Social{
+			Id:   provider + "-" + authUser.UserID,
+			Name: authUser.NickName,
+		}
 		user := User{
-			Id:    provider + "-" + authUser.UserID,
 			Name:  authUser.NickName,
 			Title: authUser.Name,
 			Email: authUser.Email,
 		}
-		fmt.Printf("user=%#v\n", user)
 
-		session.Values["user"] = &user
+		newSocial, err := SocialIns(db, social)
+		if err != nil {
+			log.Printf("err inserting social: %v\n", err)
+		}
+
+		newUser, err := UserIns(db, user)
+		if err != nil {
+			log.Printf("err inserting user: %v\n", err)
+		}
+
+		fmt.Printf("social=%#v\n", social)
+		fmt.Printf("user=%#v\n", user)
+		fmt.Printf("new social=%#v\n", newSocial)
+		fmt.Printf("new user=%#v\n", newUser)
+
+		session.Values["user"] = &newUser
 
 		// save all sessions
 		sessions.Save(r, w)
@@ -145,13 +175,17 @@ func main() {
 	})
 
 	// Publicly Viewable Projects
-	p.Get("/u/:userName/p/:projectName/", func(w http.ResponseWriter, r *http.Request) {
+	p.Get("/u/{userName}/p/{projectName}/", func(w http.ResponseWriter, r *http.Request) {
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+
+		fmt.Printf("Path=%s\n", r.URL.Path)
 		data := struct {
-			Title    string
-			UserName string
+			Title string
+			User  *User
 		}{
 			"Project by User",
-			"",
+			user,
 		}
 		render(w, "user-u-project-p.html", data)
 	})
@@ -172,15 +206,44 @@ func main() {
 
 		// render the new form
 		data := struct {
-			Title    string
-			User     *User
-			UserName string
+			Title string
+			User  *User
 		}{
 			"New Project",
 			user,
-			"",
 		}
 		render(w, "project-new.html", data)
+	})
+
+	p.Post("/p/new", func(w http.ResponseWriter, r *http.Request) {
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		fmt.Printf("title=%s\n", title)
+		fmt.Printf("content=%s\n", content)
+
+		// insert this project
+		project := Project{
+			Title:    title,
+			Content:  content,
+			UserName: user.Name,
+		}
+
+		newProject, err := ProjectIns(db, project)
+		if err != nil {
+			// ToDo: re-render the form with errors
+			http.Redirect(w, r, "/p/new", http.StatusFound)
+			return
+		}
+
+		// all good
+		http.Redirect(w, r, "/p/"+newProject.Name+"/", http.StatusFound)
 	})
 
 	// Specific Project
@@ -283,6 +346,6 @@ func main() {
 	})
 
 	// server
-	err := http.ListenAndServe(":"+port, p)
-	log.Fatal(err)
+	errServer := http.ListenAndServe(":"+port, p)
+	check(errServer)
 }

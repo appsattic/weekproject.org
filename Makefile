@@ -10,6 +10,9 @@ build: fmt
 weekproject: build
 	./bin/weekproject
 
+dump:
+	boltdb-dump weekproject.db
+
 test:
 	gb test -v
 

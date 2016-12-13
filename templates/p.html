@@ -1,15 +1,19 @@
 {{ template "header.html" . }}
 
+  <p><a class="btn" href="/p/new">Create New Project</a></p>
+
   <p>
     Here is a list of your projects:
   </p>
 
   {{ if .Projects }}
   <ul>
+    {{ range .Projects }}
+    <li><a href="/p/{{ .Name }}/">{{ .Title }}</a></li>
+    {{ end }}
   </ul>
   {{ else }}
   <p>No projects found.</p>
-  <p>Why not <a href="/p/new">create one</a> now?</p>
   {{ end }}
 
   <p>

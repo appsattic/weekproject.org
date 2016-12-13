@@ -239,10 +239,12 @@ func main() {
 
 		// render the new form
 		data := struct {
-			Title string
-			User  *User
+			Title    string
+			SubTitle string
+			User     *User
 		}{
 			"New Project",
+			"",
 			user,
 		}
 		render(w, "project-new.html", data)
@@ -336,15 +338,24 @@ func main() {
 
 		// get a list of projects
 		// ToDo: ... !
+		projects, err := ProjectSel(db, user.Name)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Printf("projects=%#v\n", projects)
 
 		data := struct {
 			Title    string
+			SubTitle string
 			User     *User
-			Projects []Project
+			Projects []*Project
 		}{
 			"Your Projects",
+			"",
 			user,
-			make([]Project, 0),
+			projects,
 		}
 
 		render(w, "p.html", data)
@@ -361,10 +372,12 @@ func main() {
 		user := getUserFromSession(session)
 
 		data := struct {
-			Title string
-			User  *User
+			Title    string
+			SubTitle string
+			User     *User
 		}{
 			"The Week Project",
+			"",
 			user,
 		}
 

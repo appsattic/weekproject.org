@@ -21,6 +21,7 @@
   {{ with .User }}
 	  <a href="/logout" class="navbar-link">Logout</a>
 	  <a href="/profile" class="navbar-link">{{ .Name }}</a>
+	  <a href="/p/" class="navbar-link">My Projects</a>
   {{ else }}
 	  <a href="/auth/twitter" class="navbar-link">Sign In with Twitter</a>
   {{ end }}

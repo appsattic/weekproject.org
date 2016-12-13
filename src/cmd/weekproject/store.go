@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -87,8 +88,39 @@ func ProjectGet(db *bolt.DB, userName, projectName string) (Project, error) {
 
 	err := db.View(func(tx *bolt.Tx) error {
 		return rod.GetJson(tx, "user."+userName+".project", projectName, &p)
-		return nil
 	})
 
 	return p, err
+}
+
+// ProjectSel returns a splice of projects for this userName.
+func ProjectSel(db *bolt.DB, userName string) ([]*Project, error) {
+	projects := make([]*Project, 0)
+
+	err := db.View(func(tx *bolt.Tx) error {
+		// range over this user's projects
+		b, err := rod.GetBucket(tx, "user."+userName+".project")
+		if err != nil {
+			return err
+		}
+		if b == nil {
+			return nil
+		}
+
+		// loop through all posts
+		c := b.Cursor()
+		for name, raw := c.First(); name != nil; name, raw = c.Next() {
+			// decode this post
+			p := Project{}
+			err := json.Unmarshal(raw, &p)
+			if err != nil {
+				return nil
+			}
+			projects = append(projects, &p)
+		}
+
+		return nil
+	})
+
+	return projects, err
 }

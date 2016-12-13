@@ -97,11 +97,43 @@ func PutJson(tx *bolt.Tx, location, key string, v interface{}) error {
 // * ErrLocationMustHaveAtLeastOneBucket if no location was specified
 // * ErrKeyNotProvided if no key was specified
 func Get(tx *bolt.Tx, location, key string) ([]byte, error) {
-	if location == "" {
-		return nil, ErrLocationMustHaveAtLeastOneBucket
+	b, err := GetBucket(tx, location)
+	if err != nil {
+		return nil, err
 	}
+	if b == nil {
+		return nil, nil
+	}
+
 	if key == "" {
 		return nil, ErrKeyNotProvided
+	}
+
+	// get this key
+	return b.Get([]byte(key)), nil
+}
+
+// GetJson() calls rod.Get() and then json.Unmarshal() with the result to deserialise the value into interface{}. If
+// any bucket doesn't exist we just return nil with nothing placed into v. The same if the key doesn't exist.
+func GetJson(tx *bolt.Tx, location, key string, v interface{}) error {
+	// get this key
+	raw, err := Get(tx, location, key)
+	if err != nil {
+		return err
+	}
+	if raw == nil {
+		// no key exists
+		return nil
+	}
+
+	// decode to the v interface{}
+	return json.Unmarshal(raw, &v)
+}
+
+// GetBucket returns this nested bucket from the store.
+func GetBucket(tx *bolt.Tx, location string) (*bolt.Bucket, error) {
+	if location == "" {
+		return nil, ErrLocationMustHaveAtLeastOneBucket
 	}
 
 	// split the 'bucket' on '.'
@@ -129,23 +161,5 @@ func Get(tx *bolt.Tx, location, key string) ([]byte, error) {
 		}
 	}
 
-	// get this key
-	return b.Get([]byte(key)), nil
-}
-
-// GetJson() calls rod.Get() and then json.Unmarshal() with the result to deserialise the value into interface{}. If
-// any bucket doesn't exist we just return nil with nothing placed into v. The same if the key doesn't exist.
-func GetJson(tx *bolt.Tx, location, key string, v interface{}) error {
-	// get this key
-	raw, err := Get(tx, location, key)
-	if err != nil {
-		return err
-	}
-	if raw == nil {
-		// no key exists
-		return nil
-	}
-
-	// decode to the v interface{}
-	return json.Unmarshal(raw, &v)
+	return b, nil
 }

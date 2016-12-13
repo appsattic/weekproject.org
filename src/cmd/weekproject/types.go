@@ -1,6 +1,11 @@
 package main
 
-import "time"
+import (
+	"strings"
+	"time"
+
+	"github.com/Machiel/slugify"
+)
 
 type Social struct {
 	Id       string // e.g. "twitter-123456"
@@ -18,10 +23,44 @@ type User struct {
 }
 
 type Project struct {
-	Name     string // e.g. "week-project"
-	Title    string // e.g. "The Week Project"
-	Content  string
-	UserName string // e.g. "chilts"
-	Inserted time.Time
-	Updated  time.Time
+	Name     string            `schema:"-"`     // e.g. "week-project"
+	Title    string            `schema:"Title"` // e.g. "The Week Project"
+	Content  string            `schema:"Content"`
+	UserName string            `schema:"-"` // e.g. "chilts"
+	Inserted time.Time         `schema:"-"`
+	Updated  time.Time         `schema:"-"`
+	Error    map[string]string `json:"-"`
+}
+
+// Validate firstly normalises the project, then validates it and returns either true (valid) or false (invalid). It sets any messages onto
+// the Project.Error field.
+func (p *Project) Validate() bool {
+	now := time.Now()
+
+	// normalise
+	p.Name = slugify.Slugify(p.Title)
+	p.Title = strings.TrimSpace(p.Title)
+	p.Inserted = now
+	p.Updated = now
+	p.Error = make(map[string]string)
+
+	// validate
+	valid := true
+
+	if len(p.Name) == 0 {
+		p.Error["Name"] = "Name must be provided"
+		valid = false
+	}
+
+	if len(p.Title) == 0 {
+		p.Error["Title"] = "Title must be provided"
+		valid = false
+	}
+
+	if len(p.UserName) == 0 {
+		p.Error["UserName"] = "UserName must be provided"
+		valid = false
+	}
+
+	return valid
 }

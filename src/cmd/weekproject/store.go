@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Machiel/slugify"
 	"github.com/boltdb/bolt"
 	"github.com/chilts/rod"
 )
@@ -55,28 +54,14 @@ func UserIns(db *bolt.DB, user User) (User, error) {
 	return u, err
 }
 
-// ProjectIns takes a skeleton project, sets various fields on it and inserts it into the store. It fails if this
-// project already exists (under this user).
+// ProjectIns takes a project and it into the store. It doesn't set or manipulate any fields on the project prior to
+// insert. It fails if this project already exists (under this user).
 //
 // We only use the Title, Content, and UserName fields. The rest are generated.
-func ProjectIns(db *bolt.DB, project Project) (Project, error) {
-	// generate some fields
-	slug := slugify.Slugify(project.Title)
-	now := time.Now()
-
-	//
-	p := Project{
-		Name:     slug,
-		Title:    project.Title,
-		Content:  project.Content,
-		UserName: project.UserName,
-		Inserted: now,
-		Updated:  now,
-	}
-
+func ProjectIns(db *bolt.DB, p Project) (Project, error) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		location := "user." + p.UserName + ".project"
-		return rod.PutJson(tx, location, slug, p)
+		return rod.PutJson(tx, location, p.Name, p)
 	})
 
 	return p, err

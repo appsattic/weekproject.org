@@ -12,6 +12,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/pat"
+	"github.com/gorilla/schema"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -27,6 +28,8 @@ var sessionStore = sessions.NewCookieStore(
 
 var tmpl *template.Template
 var sessionName = "session"
+
+var decoder = schema.NewDecoder()
 
 func check(err error) {
 	if err != nil {
@@ -258,16 +261,22 @@ func main() {
 			return
 		}
 
-		title := r.FormValue("title")
-		content := r.FormValue("content")
-		fmt.Printf("title=%s\n", title)
-		fmt.Printf("content=%s\n", content)
+		errParseForm := r.ParseForm()
+		if errParseForm != nil {
+			http.Error(w, errParseForm.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		// insert this project
-		project := Project{
-			Title:    title,
-			Content:  content,
-			UserName: user.Name,
+		project := Project{}
+		errDecode := decoder.Decode(&project, r.PostForm)
+		if errDecode != nil {
+			http.Error(w, errDecode.Error(), http.StatusInternalServerError)
+			return
+		}
+		project.UserName = user.Name
+
+		if project.Validate() == false {
+			fmt.Printf("validation errors = %#v\n", project.Error)
 		}
 
 		newProject, err := ProjectIns(db, project)

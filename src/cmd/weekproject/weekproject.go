@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/gomiddleware/logger"
 	"github.com/gorilla/pat"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/sessions"
@@ -393,7 +394,10 @@ func main() {
 		render(w, "index.html", data)
 	})
 
+	// create the logger middleware
+	log := logger.New()
+
 	// server
-	errServer := http.ListenAndServe(":"+port, p)
+	errServer := http.ListenAndServe(":"+port, log(p))
 	check(errServer)
 }

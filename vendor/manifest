@@ -20,6 +20,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/gomiddleware/logger",
+			"repository": "https://github.com/gomiddleware/logger",
+			"revision": "d5f3558dddfebb5e7e5e55448d0f6d5907ac1cc5",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/gorilla/context",
 			"repository": "https://github.com/gorilla/context",
 			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",

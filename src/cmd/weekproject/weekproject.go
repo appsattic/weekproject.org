@@ -293,26 +293,30 @@ func main() {
 
 	// Specific Project
 	p.Get("/p/{projectName}/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("/p/{projectName}/ : entry\n")
-		defer fmt.Printf("/p/{projectName}/ : exit\n")
+		log.Printf("/p/{projectName}/ : entry\n")
+		defer log.Printf("/p/{projectName}/ : exit\n")
 
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
 		if user == nil {
+			log.Printf("/p/{projectName}/ : no user\n")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
 
 		// get this provider name from the URL
 		projectName := r.URL.Query().Get(":projectName")
+		log.Printf("/p/{projectName}/ : projectName=%s\n", projectName)
 
 		// try and retrieve this project from the store
 		p, err := ProjectGet(db, user.Name, projectName)
 		if err != nil {
+			log.Printf("/p/{projectName}/ : err ProjectGet : %v\n", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if p.Name == "" {
+			log.Printf("/p/{projectName}/ : Not Found\n")
 			http.NotFound(w, r)
 			return
 		}

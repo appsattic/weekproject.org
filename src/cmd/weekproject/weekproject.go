@@ -220,7 +220,7 @@ func main() {
 			Project  Project
 		}{
 			p.Title,
-			"By " + p.UserName,
+			"by @" + p.UserName,
 			user,
 			p,
 		}
@@ -328,7 +328,7 @@ func main() {
 			Project  Project
 		}{
 			p.Title,
-			"by " + p.UserName,
+			"by @" + p.UserName,
 			user,
 			p,
 		}

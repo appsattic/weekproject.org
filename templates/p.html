@@ -2,16 +2,33 @@
 
   <p><a class="btn" href="/p/new">Create New Project</a></p>
 
-  <p>
-    Here is a list of your projects:
-  </p>
-
   {{ if .Projects }}
-  <ul>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
     {{ range .Projects }}
-    <li><a href="/p/{{ .Name }}/">{{ .Title }}</a></li>
+      <tr>
+        <td>
+          <a href="/p/{{ .Name }}/">{{ .Title }}</a>
+          (<a href="/u/{{ $.User.Name }}/p/{{ .Name }}" target="_new">view</a>)
+        </td>
+        <td style="text-align: center;">
+          <a href="/p/{{ .Name }}/progress">Add Progress</a>
+          |
+          <a href="/p/{{ .Name }}/edit">Edit</a>
+          |
+          <a href="/p/{{ .Name }}/remove">Remove</a>
+        </td>
+      </tr>
     {{ end }}
-  </ul>
+    </tbody>
+  </table>
+
   {{ else }}
   <p>No projects found.</p>
   {{ end }}

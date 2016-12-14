@@ -223,7 +223,7 @@ func main() {
 			user,
 			p,
 		}
-		render(w, "user-u-project-p.html", data)
+		render(w, "u-user-p-project.html", data)
 	})
 
 	// Projects
@@ -250,7 +250,7 @@ func main() {
 			"",
 			user,
 		}
-		render(w, "project-new.html", data)
+		render(w, "p-new.html", data)
 	})
 
 	p.Post("/p/new", func(w http.ResponseWriter, r *http.Request) {
@@ -327,7 +327,7 @@ func main() {
 			user,
 			p,
 		}
-		render(w, "project-info.html", data)
+		render(w, "p-project.html", data)
 	})
 
 	// Projects

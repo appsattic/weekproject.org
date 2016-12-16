@@ -15,10 +15,10 @@
       <tr>
         <td>
           <a href="/p/{{ .Name }}/">{{ .Title }}</a>
-          (<a href="/u/{{ $.User.Name }}/p/{{ .Name }}" target="_new">view</a>)
+          (<a href="/u/{{ $.User.Name }}/p/{{ .Name }}" target="_new">View</a>)
         </td>
         <td style="text-align: center;">
-          <a href="/p/{{ .Name }}/progress">Add Progress</a>
+          <a href="/p/{{ .Name }}/update">Add Update</a>
           |
           <a href="/p/{{ .Name }}/edit">Edit</a>
           |
@@ -32,9 +32,5 @@
   {{ else }}
   <p>No projects found.</p>
   {{ end }}
-
-  <p>
-    (Ends)
-  </p>
 
 {{ template "footer.html" . }}

@@ -1,0 +1,30 @@
+{{ template "header.html" . }}
+
+  <h2>
+    Add Update
+  </h2>
+
+  <form action="/p/{{ .Project.Name }}/update" method="post">
+    <div class="row">
+      <div class="col-12">
+        <textarea class="form-textarea" rows="4" name="Status" placeholder="How are you getting on ..."></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        Percentage Complete: <strong id="percentage"></strong>
+        <br>
+        Estimate your progress :
+        <strong>0%</strong>
+        <input id="slider" class="form-input" type="range" name="Progress" min="0" max="100" value="72">
+        <strong>100%</strong>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <input class="form-input" value="Add Update" type="submit">
+      </div>
+    </div>
+  </form>
+
+{{ template "footer.html" . }}

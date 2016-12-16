@@ -26,7 +26,15 @@ type Project struct {
 	Name     string            `schema:"-"`     // e.g. "week-project"
 	Title    string            `schema:"Title"` // e.g. "The Week Project"
 	Content  string            `schema:"Content"`
-	UserName string            `schema:"-"` // e.g. "chilts"
+	UserName string            `schema:"-"` // e.g. "chilts" // ToDo: decide if we actually need this
+	Inserted time.Time         `schema:"-"`
+	Updated  time.Time         `schema:"-"`
+	Error    map[string]string `json:"-"`
+}
+
+type Update struct {
+	Status   string            `schema:"Status"`
+	Progress int               `schema:"Progress"`
 	Inserted time.Time         `schema:"-"`
 	Updated  time.Time         `schema:"-"`
 	Error    map[string]string `json:"-"`
@@ -35,7 +43,7 @@ type Project struct {
 // Validate firstly normalises the project, then validates it and returns either true (valid) or false (invalid). It sets any messages onto
 // the Project.Error field.
 func (p *Project) Validate() bool {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// normalise
 	p.Name = slugify.Slugify(p.Title)
@@ -63,4 +71,16 @@ func (p *Project) Validate() bool {
 	}
 
 	return valid
+}
+
+func (u *Update) Validate() bool {
+	now := time.Now().UTC()
+
+	u.Inserted = now
+	u.Updated = now
+	u.Error = make(map[string]string)
+
+	// ToDo: make sure Progress is in the range 0 to 100
+
+	return true
 }

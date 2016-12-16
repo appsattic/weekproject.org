@@ -202,7 +202,7 @@ func main() {
 		fmt.Printf("projectName=%s\n", projectName)
 
 		// try and retrieve this project from the store
-		p, err := ProjectGet(db, userName, projectName)
+		p, err := GetProject(db, userName, projectName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -280,7 +280,7 @@ func main() {
 			fmt.Printf("validation errors = %#v\n", project.Error)
 		}
 
-		newProject, err := ProjectIns(db, project)
+		err := InsProject(db, project)
 		if err != nil {
 			// ToDo: re-render the form with errors
 			http.Redirect(w, r, "/p/new", http.StatusFound)
@@ -288,7 +288,111 @@ func main() {
 		}
 
 		// all good
-		http.Redirect(w, r, "/p/"+newProject.Name+"/", http.StatusFound)
+		http.Redirect(w, r, "/p/"+project.Name+"/", http.StatusFound)
+	})
+
+	// Add an update to a project.
+	p.Get("/p/{projectName}/update", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("GET /p/{projectName}/update : entry\n")
+		defer log.Printf("GET /p/{projectName}/update : exit\n")
+
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			log.Printf("/p/{projectName}/update : no user\n")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		// get this project name from the URL
+		projectName := r.URL.Query().Get(":projectName")
+		log.Printf("/p/{projectName}/update : projectName=%s\n", projectName)
+
+		// try and retrieve this project from the store
+		p, err := GetProject(db, user.Name, projectName)
+		if err != nil {
+			log.Printf("/p/{projectName}/ : err GetProject : %v\n", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if p.Name == "" {
+			log.Printf("/p/{projectName}/ : Not Found\n")
+			http.NotFound(w, r)
+			return
+		}
+
+		data := struct {
+			Title    string
+			SubTitle string
+			User     *User
+			Project  Project
+		}{
+			p.Title,
+			"",
+			user,
+			p,
+		}
+		render(w, "p-project-update.html", data)
+	})
+
+	// Add an update to a project.
+	p.Post("/p/{projectName}/update", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("POST /p/{projectName}/update : entry\n")
+		defer log.Printf("POST /p/{projectName}/update : exit\n")
+
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			log.Printf("/p/{projectName}/update : no user\n")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		// get this project name from the URL
+		projectName := r.URL.Query().Get(":projectName")
+		log.Printf("/p/{projectName}/update : projectName=%s\n", projectName)
+
+		// try and retrieve this project from the store
+		p, err := GetProject(db, user.Name, projectName)
+		if err != nil {
+			log.Printf("/p/{projectName}/ : err GetProject : %v\n", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if p.Name == "" {
+			log.Printf("/p/{projectName}/ : Not Found\n")
+			http.NotFound(w, r)
+			return
+		}
+
+		// get the incoming form
+		errParseForm := r.ParseForm()
+		if errParseForm != nil {
+			http.Error(w, errParseForm.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		update := Update{}
+		errDecode := decoder.Decode(&update, r.PostForm)
+		if errDecode != nil {
+			http.Error(w, errDecode.Error(), http.StatusInternalServerError)
+			return
+		}
+		if update.Validate() == false {
+			// ToDo: re-render the form with errors
+			fmt.Printf("validation errors = %#v\n", update.Error)
+		}
+
+		fmt.Printf("update = %#v\n", update)
+
+		errInsUpdate := InsUpdate(db, p, update)
+		if errInsUpdate != nil {
+			fmt.Printf("error inserting update = %#v\n", errInsUpdate)
+			http.Redirect(w, r, "/p/"+projectName+"/update", http.StatusFound)
+			return
+		}
+
+		http.Redirect(w, r, "/p/"+projectName+"/", http.StatusFound)
 	})
 
 	// Specific Project
@@ -309,9 +413,9 @@ func main() {
 		log.Printf("/p/{projectName}/ : projectName=%s\n", projectName)
 
 		// try and retrieve this project from the store
-		p, err := ProjectGet(db, user.Name, projectName)
+		p, err := GetProject(db, user.Name, projectName)
 		if err != nil {
-			log.Printf("/p/{projectName}/ : err ProjectGet : %v\n", err)
+			log.Printf("/p/{projectName}/ : err GetProject : %v\n", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -352,7 +456,7 @@ func main() {
 
 		// get a list of projects
 		// ToDo: ... !
-		projects, err := ProjectSel(db, user.Name)
+		projects, err := SelProject(db, user.Name)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

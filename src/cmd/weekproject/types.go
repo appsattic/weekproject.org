@@ -52,35 +52,35 @@ func (p *Project) Validate() bool {
 	p.Updated = now
 	p.Error = make(map[string]string)
 
-	// validate
-	valid := true
-
 	if len(p.Name) == 0 {
 		p.Error["Name"] = "Name must be provided"
-		valid = false
 	}
 
 	if len(p.Title) == 0 {
 		p.Error["Title"] = "Title must be provided"
-		valid = false
 	}
 
 	if len(p.UserName) == 0 {
 		p.Error["UserName"] = "UserName must be provided"
-		valid = false
 	}
 
-	return valid
+	return len(p.Error) == 0
 }
 
 func (u *Update) Validate() bool {
+	// normalise
 	now := time.Now().UTC()
-
 	u.Inserted = now
 	u.Updated = now
 	u.Error = make(map[string]string)
 
-	// ToDo: make sure Progress is in the range 0 to 100
+	if len(u.Status) > 1000 {
+		u.Error["Status"] = "Status should be less than 1,000 chars"
+	}
 
-	return true
+	if u.Progress < 0 && u.Progress > 100 {
+		u.Error["Progress"] = "Progress should be between 0 and 100 inclusive"
+	}
+
+	return len(u.Error) == 0
 }

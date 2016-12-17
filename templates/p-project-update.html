@@ -7,16 +7,22 @@
   <form action="/p/{{ .Project.Name }}/update" method="post">
     <div class="row">
       <div class="col-12">
-        <textarea class="form-textarea" rows="4" name="Status" placeholder="How are you getting on ..."></textarea>
+        {{ with .Update.Error.Status }}
+        <div class="alert alert-error">{{ . }}</div>
+        {{ end }}
+        <textarea class="form-textarea" rows="4" name="Status" placeholder="How are you getting on ...">{{ .Update.Status }}</textarea>
       </div>
     </div>
     <div class="row">
       <div class="col-12">
+        {{ with .Update.Error.Progress }}
+        <div class="alert alert-error">{{ . }}</div>
+        {{ end }}
         Percentage Complete: <strong id="percentage"></strong>
         <br>
         Estimate your progress :
         <strong>0%</strong>
-        <input id="slider" class="form-input" type="range" name="Progress" min="0" max="100" value="72">
+        <input id="slider" class="form-input" type="range" name="Progress" min="0" max="100" value="{{ or .Update.Progress 0 }}">
         <strong>100%</strong>
       </div>
     </div>

@@ -325,12 +325,14 @@ func main() {
 			Title    string
 			SubTitle string
 			User     *User
-			Project  Project
+			Project  *Project
+			Update   *Update
 		}{
 			p.Title,
 			"",
 			user,
-			p,
+			&p,
+			&Update{},
 		}
 		render(w, "p-project-update.html", data)
 	})
@@ -378,12 +380,24 @@ func main() {
 			http.Error(w, errDecode.Error(), http.StatusInternalServerError)
 			return
 		}
-		if update.Validate() == false {
-			// ToDo: re-render the form with errors
-			fmt.Printf("validation errors = %#v\n", update.Error)
-		}
 
-		fmt.Printf("update = %#v\n", update)
+		if update.Validate() == false {
+			data := struct {
+				Title    string
+				SubTitle string
+				User     *User
+				Project  *Project
+				Update   *Update
+			}{
+				p.Title,
+				"",
+				user,
+				&p,
+				&update,
+			}
+			render(w, "p-project-update.html", data)
+			return
+		}
 
 		errInsUpdate := InsUpdate(db, p, update)
 		if errInsUpdate != nil {

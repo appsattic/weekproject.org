@@ -1,5 +1,15 @@
 {{ template "header.html" . }}
 
+  <p>
+    <a href="/">Home</a>
+    &gt;
+    <a href="/p/">Projects</a>
+    &gt;
+    <strong>{{ .Project.Title }}</strong>
+  </p>
+
+  <p><a class="btn" href="/p/{{ .Project.Name }}/update">Add Status Update</a></p>
+
   <h2>{{ .Project.Title }}</h2>
 
   <p>{{ .Project.Content }}</p>

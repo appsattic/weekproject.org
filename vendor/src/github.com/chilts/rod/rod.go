@@ -9,6 +9,7 @@ package rod
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/boltdb/bolt"
@@ -162,4 +163,46 @@ func GetBucket(tx *bolt.Tx, location string) (*bolt.Bucket, error) {
 	}
 
 	return b, nil
+}
+
+// SelAll will give you everything inside the bucket specified by location. The newItem function you pass in will be
+// called for every key in the bucket and should just return an empty instance of your type. Append will also be called
+// for every item once unmarshalling has taken place.
+//
+//   animals := make([]*Animal, 0)
+//   err := SelAll(tx, "animal", func() interface{} {
+//       return Animal{}
+//   }, func(v interface{}) {
+//       a, _ := v.(Animal)
+//       animals = append(animals, &a)
+//   })
+//
+// It's a bit of boilerplate but you could just pass in a newItem function declared earlier in the program. This API
+// is subject to change since it could probably be improved upon.
+func SelAll(tx *bolt.Tx, location string, newItem func() interface{}, append func(interface{})) error {
+	b, err := GetBucket(tx, location)
+	if err != nil {
+		return err
+	}
+	if b == nil {
+		return nil
+	}
+
+	// use a cursor to iterate through this bucket
+	c := b.Cursor()
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		fmt.Printf("%s = %s\n", k, string(v))
+
+		// get a new thing
+		item := newItem()
+		err := json.Unmarshal(v, &item)
+		if err != nil {
+			return err
+		}
+
+		// now call the append function
+		append(item)
+	}
+
+	return nil
 }

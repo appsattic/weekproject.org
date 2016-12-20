@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -12,9 +14,7 @@ var (
 	ErrLocationMustHaveOneBucket = errors.New("location must specify at least one bucket")
 )
 
-var format = "2006-01-02T15:04:05Z"
-
-func SocialIns(db *bolt.DB, social Social) (Social, error) {
+func InsSocial(db *bolt.DB, social Social) (Social, error) {
 	// generate some fields
 	now := time.Now().UTC()
 
@@ -34,7 +34,8 @@ func SocialIns(db *bolt.DB, social Social) (Social, error) {
 	return s, err
 }
 
-func UserIns(db *bolt.DB, user User) (User, error) {
+//
+func InsUser(db *bolt.DB, user User) (User, error) {
 	// generate some fields
 	now := time.Now().UTC()
 
@@ -77,8 +78,8 @@ func GetProject(db *bolt.DB, userName, projectName string) (Project, error) {
 	return p, err
 }
 
-// ProjectSel returns a splice of projects for this userName.
-func SelProject(db *bolt.DB, userName string) ([]*Project, error) {
+// SelProjects returns a splice of projects for this userName.
+func SelProjects(db *bolt.DB, userName string) ([]*Project, error) {
 	projects := make([]*Project, 0)
 
 	err := db.View(func(tx *bolt.Tx) error {
@@ -112,10 +113,55 @@ func SelProject(db *bolt.DB, userName string) ([]*Project, error) {
 // InsUpdate takes an update and a project and puts it into the store. It doesn't set or manipulate any fields on the
 // project prior to insert. It uses an id based on the u.Inserted time.
 func InsUpdate(db *bolt.DB, p Project, u Update) error {
-	id := u.Inserted.Format(format)
+	// firstly, get the project out, then update the progress
+	p, errGet := GetProject(db, p.UserName, p.Name)
+	if errGet != nil {
+		return errGet
+	}
+
+	p.Progress = u.Progress
+
+	errIns := InsProject(db, p)
+	if errIns != nil {
+		return errIns
+	}
 
 	return db.Update(func(tx *bolt.Tx) error {
+
 		location := "user." + p.UserName + ".project." + p.Name + ".update"
-		return rod.PutJson(tx, location, id, u)
+		return rod.PutJson(tx, location, u.Id, u)
 	})
+}
+
+// SelUpdates returns a splice of projects for this userName.
+func SelUpdates(db *bolt.DB, userName, projectName string) ([]*Update, error) {
+	updates := make([]*Update, 0)
+
+	err := db.View(func(tx *bolt.Tx) error {
+		// range over this user's project's updates
+		b, err := rod.GetBucket(tx, "user."+userName+".project."+projectName+".update")
+		if err != nil {
+			return err
+		}
+		if b == nil {
+			return nil
+		}
+
+		// loop through all project buckets
+		c := b.Cursor()
+		for key, val := c.First(); key != nil; key, val = c.Next() {
+			fmt.Printf("")
+			// get this update
+			u := Update{}
+			err := json.Unmarshal(val, &u)
+			if err != nil {
+				return err
+			}
+			updates = append(updates, &u)
+		}
+
+		return nil
+	})
+
+	return updates, err
 }

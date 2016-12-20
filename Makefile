@@ -13,6 +13,9 @@ weekproject: build
 dump:
 	boltdb-dump weekproject.db
 
+update:
+	gb vendor update github.com/chilts/rod
+
 test:
 	gb test -v
 

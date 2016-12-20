@@ -1,8 +1,28 @@
 {{ template "header.html" . }}
 
+  <h3>Status</h3>
+
   <p>
-    This is a project by &quot;{{ .Project.UserName }}&quot; called &quot;{{ .Project.Title }}&quot;.
+    Progress: {{ .Project.Progress }}
+    <br>
+    Updates: {{ len .Updates }}
   </p>
+
+  <h3>Description</h3>
+
+  <div>
+    {{ .Project.Content }}
+  </div>
+
+  <h3>Updates</h3>
+
+  <ul>
+    {{ range .Updates }}
+    <li>{{ .Id }} : {{ .Status }} - {{ .Progress }}</li>
+    {{ else }}
+    <li>No Updates</li>
+    {{ end }}
+  </ul>
 
   <p>
     (Ends)

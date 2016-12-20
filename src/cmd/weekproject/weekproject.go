@@ -146,12 +146,12 @@ func main() {
 			Email: authUser.Email,
 		}
 
-		newSocial, err := SocialIns(db, social)
+		newSocial, err := InsSocial(db, social)
 		if err != nil {
 			log.Printf("err inserting social: %v\n", err)
 		}
 
-		newUser, err := UserIns(db, user)
+		newUser, err := InsUser(db, user)
 		if err != nil {
 			log.Printf("err inserting user: %v\n", err)
 		}
@@ -191,9 +191,6 @@ func main() {
 
 	// Publicly Viewable Projects
 	p.Get("/u/{userName}/p/{projectName}/", func(w http.ResponseWriter, r *http.Request) {
-		session, _ := sessionStore.Get(r, sessionName)
-		user := getUserFromSession(session)
-
 		// get this provider name from the URL
 		userName := r.URL.Query().Get(":userName")
 		projectName := r.URL.Query().Get(":projectName")
@@ -212,20 +209,36 @@ func main() {
 			return
 		}
 
+		// get a list of updates
+		updates, err := SelUpdates(db, userName, projectName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// now check to see if a user is logged in
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+
 		fmt.Printf("Path=%s\n", r.URL.Path)
 		data := struct {
 			Title    string
 			SubTitle string
 			User     *User
 			Project  Project
+			Updates  []*Update
 		}{
 			p.Title,
 			"by @" + p.UserName,
 			user,
 			p,
+			updates,
 		}
 		render(w, "u-user-p-project.html", data)
 	})
+
+	// Publicly Viewable Projects
+	p.Get("/u/{userName}/p/{projectName}", toSlash)
 
 	// Projects
 	p.Get("/p/new", func(w http.ResponseWriter, r *http.Request) {
@@ -469,8 +482,7 @@ func main() {
 		}
 
 		// get a list of projects
-		// ToDo: ... !
-		projects, err := SelProject(db, user.Name)
+		projects, err := SelProjects(db, user.Name)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

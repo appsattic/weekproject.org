@@ -7,6 +7,8 @@ import (
 	"github.com/Machiel/slugify"
 )
 
+const format = "2006-01-02T15:04:05Z"
+
 type Social struct {
 	Id       string // e.g. "twitter-123456"
 	Name     string // e.g. "chilts" - the nickname they have in this system
@@ -27,12 +29,14 @@ type Project struct {
 	Title    string            `schema:"Title"` // e.g. "The Week Project"
 	Content  string            `schema:"Content"`
 	UserName string            `schema:"-"` // e.g. "chilts" // ToDo: decide if we actually need this
+	Progress int               `schema:"-"`
 	Inserted time.Time         `schema:"-"`
 	Updated  time.Time         `schema:"-"`
 	Error    map[string]string `json:"-"`
 }
 
 type Update struct {
+	Id       string            `schema:"Id"`
 	Status   string            `schema:"Status"`
 	Progress int               `schema:"Progress"`
 	Inserted time.Time         `schema:"-"`
@@ -70,6 +74,7 @@ func (p *Project) Validate() bool {
 func (u *Update) Validate() bool {
 	// normalise
 	now := time.Now().UTC()
+	u.Id = now.Format(format)
 	u.Inserted = now
 	u.Updated = now
 	u.Error = make(map[string]string)

@@ -1,12 +1,19 @@
 {{ template "header.html" . }}
 
-  <p>
-    <a href="/">Home</a>
-    &gt;
-    <strong>Projects</strong>
-  </p>
-
-  <p><a class="btn" href="/p/new">Create New Project</a></p>
+  <div class="grid grid-fluid">
+    <div class="row">
+      <div class="col-8">
+        <p>
+          <a href="/">Home</a>
+          &gt;
+          <strong>Projects</strong>
+        </p>
+      </div>
+      <div class="col-4">
+        <p><a class="btn" href="/p/new">Create New Project</a></p>
+      </div>
+    </div>
+  </div>
 
   {{ if .Projects }}
   <table class="table table-striped">

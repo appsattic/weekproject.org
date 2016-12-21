@@ -1,14 +1,22 @@
 {{ template "header.html" . }}
 
-  <p>
-    <a href="/">Home</a>
-    &gt;
-    <a href="/p/">Projects</a>
-    &gt;
-    <strong>{{ .Project.Title }}</strong>
-  </p>
+  <div class="grid grid-fluid">
+    <div class="row">
+      <div class="col-8">
+        <p>
+          <a href="/">Home</a>
+          &gt;
+          <a href="/p/">Projects</a>
+          &gt;
+          <strong>{{ .Project.Title }}</strong>
+        </p>
+      </div>
+      <div class="col-4">
+        <p><a class="btn" href="/p/{{ .Project.Name }}/update">Add Status Update</a></p>
+      </div>
+    </div>
+  </div>
 
-  <p><a class="btn" href="/p/{{ .Project.Name }}/update">Add Status Update</a></p>
 
   <h2>{{ .Project.Title }}</h2>
 

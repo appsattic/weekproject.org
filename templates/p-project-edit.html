@@ -1,0 +1,43 @@
+{{ template "header.html" . }}
+
+  <div class="grid grid-fluid">
+    <div class="row">
+      <div class="col-8">
+        <p>
+          <a href="/">Home</a>
+          &gt;
+          <a href="/p/">Projects</a>
+          &gt;
+          <a href="/p/{{ .Project.Name }}/">{{ .Project.Title }}</a>
+          &gt;
+          <strong>Edit</strong>
+        </p>
+      </div>
+      <div class="col-4">
+      </div>
+    </div>
+  </div>
+
+  <h2>
+    Edit Project
+  </h2>
+
+  <form action="/p/new" method="post">
+    <div class="row">
+      <div class="col-12">
+        <input class="form-input" type="text" name="Title" placeholder="Project Title" value={{ .Project.Title }}>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <textarea class="form-textarea" rows="4" name="Content" placeholder="Describe what you are going to learn ...">{{ .Project.Content }}</textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <input class="form-input" value="Save" type="submit">
+      </div>
+    </div>
+  </form>
+
+{{ template "footer.html" . }}

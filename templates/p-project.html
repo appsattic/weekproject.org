@@ -2,7 +2,7 @@
 
   <div class="grid grid-fluid">
     <div class="row">
-      <div class="col-8">
+      <div class="col-6">
         <p>
           <a href="/">Home</a>
           &gt;
@@ -11,15 +11,25 @@
           <strong>{{ .Project.Title }}</strong>
         </p>
       </div>
-      <div class="col-4">
-        <p><a class="btn" href="/p/{{ .Project.Name }}/update">Add Status Update</a></p>
+      <div class="col-6">
+        <a class="btn" href="/p/{{ .Project.Name }}/update">Add Status Update</a>
+        <a class="btn" href="/p/{{ .Project.Name }}/edit">Edit</a>
+        <a class="btn" href="/p/{{ .Project.Name }}/delete">Delete</a>
       </div>
     </div>
   </div>
 
-
   <h2>{{ .Project.Title }}</h2>
 
   <p>{{ .Project.Content }}</p>
+
+  <h3>Updates</h3>
+
+  {{ range .Updates }}
+  <p>{{ .Status }}</p>
+  <p>Progress:  - {{ .Progress }}%</p>
+  {{ else }}
+  <p>No Updates</p>
+  {{ end }}
 
 {{ template "footer.html" . }}

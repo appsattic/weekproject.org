@@ -72,8 +72,15 @@ func init() {
 	// tell gothic where our session store is
 	gothic.Store = sessionStore
 
+	funcMap := template.FuncMap{
+		// The name "inc" is what the function will be called in the template text.
+		"inc": func(i int) int {
+			return i + 1
+		},
+	}
+
 	// don't need `.Delims("[[", "]]")` since we're not using Vue.js here
-	tmpl1, err := template.New("").ParseGlob("./templates/*.html")
+	tmpl1, err := template.New("").Funcs(funcMap).ParseGlob("./templates/*.html")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -422,6 +429,52 @@ func main() {
 		http.Redirect(w, r, "/p/"+projectName+"/", http.StatusFound)
 	})
 
+	// Edit a project.
+	p.Get("/p/{projectName}/edit", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("GET /p/{projectName}/edit : entry\n")
+		defer log.Printf("GET /p/{projectName}/edit : exit\n")
+
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			log.Printf("/p/{projectName}/edit : no user\n")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		// get this project name from the URL
+		projectName := r.URL.Query().Get(":projectName")
+		log.Printf("/p/{projectName}/edit : projectName=%s\n", projectName)
+
+		// try and retrieve this project from the store
+		p, err := GetProject(db, user.Name, projectName)
+		if err != nil {
+			log.Printf("/p/{projectName}/ : err GetProject : %v\n", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if p.Name == "" {
+			log.Printf("/p/{projectName}/ : Not Found\n")
+			http.NotFound(w, r)
+			return
+		}
+
+		data := struct {
+			Title    string
+			SubTitle string
+			User     *User
+			Project  *Project
+			Update   *Update
+		}{
+			p.Title,
+			"",
+			user,
+			&p,
+			&Update{},
+		}
+		render(w, "p-project-edit.html", data)
+	})
+
 	// Specific Project
 	p.Get("/p/{projectName}/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("/p/{projectName}/ : entry\n")
@@ -452,16 +505,25 @@ func main() {
 			return
 		}
 
+		// get a list of updates
+		updates, err := SelUpdates(db, user.Name, projectName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		data := struct {
 			Title    string
 			SubTitle string
 			User     *User
 			Project  Project
+			Updates  []*Update
 		}{
 			p.Title,
 			"by @" + p.UserName,
 			user,
 			p,
+			updates,
 		}
 		render(w, "p-project.html", data)
 	})

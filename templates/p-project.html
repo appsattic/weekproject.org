@@ -19,7 +19,10 @@
     </div>
   </div>
 
-  <h2>{{ .Project.Title }}</h2>
+  <h2>
+    {{ .Project.Title }}
+    (<a href="/u/{{ .User.Name }}/p/{{ .Project.Name }}" target="_new">View Public</a>)
+  </h2>
 
   <p>{{ .Project.Content }}</p>
 
